@@ -21,7 +21,8 @@ project "Magnet-Core"
 
    links 
    { 
-    "glfw3.lib"
+    "glfw3.lib",
+    "vulkan-1.lib"
    }
 
    defines

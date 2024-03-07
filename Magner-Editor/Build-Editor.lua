@@ -1,4 +1,4 @@
-project "SparkEngine-Editor"
+project "Magnet-Editor"
    kind "ConsoleApp"
    language "C++"
    cppdialect "C++20"
@@ -10,14 +10,14 @@ project "SparkEngine-Editor"
 
    includedirs
    {
-      "../SparkEngine-Core/Source",
-      "../SparkEngine-Core/Source/Third-Party",
-      "../SparkEngine-Core/Source/Third-Party/include"
+      "../Magnet-Core/Source",
+      "../Magnet-Core/Source/Third-Party",
+      "../Magnet-Core/Source/Third-Party/include"
    }
 
    links 
    { 
-    "SparkEngine-Core"
+    "Magnet-Core"
    }
 
    defines
