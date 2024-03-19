@@ -6,18 +6,19 @@ project "Magnet-Core"
    staticruntime "off"
 
    files { "Source/**.h", "Source/**.cpp" , "Source/**.c"}
+   
 
    includedirs
    {
       "Source/Third-Party/include"
    }
 
-   libdirs 
+   libdirs
    {
     "Source/Third-Party/lib"
    }
 
-   links 
+   links
    { 
     "glfw3.lib",
     "vulkan-1.lib"
@@ -28,6 +29,7 @@ project "Magnet-Core"
     "_CONSOLE"
    }
 
+   removefiles {"Source/Third-Party/include/**"}
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
    objdir ("../Binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")
