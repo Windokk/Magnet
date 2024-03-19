@@ -13,4 +13,4 @@ OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
 include "Magnet-Core/Build-Core.lua"
 
-include "Magner-Editor/Build-Editor.lua"
+include "Magnet-Editor/Build-Editor.lua"

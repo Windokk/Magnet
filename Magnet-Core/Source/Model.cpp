@@ -165,6 +165,7 @@ void Magnet::VKBase::Model::Builder::loadModel(const std::string& filepath)
 	std::vector<tinyobj::material_t> materials;
 	std::string warn, err;
 
+	std::cout << std::filesystem::current_path().string() << std::endl;
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
 		throw std::runtime_error(warn + err);
 	}
