@@ -9,8 +9,6 @@ project "Magnet-Core"
 
    includedirs
    {
-      "Source",
-      "Source/Third-Party",
       "Source/Third-Party/include"
    }
 

@@ -1,10 +1,16 @@
-#include "Engine.h"
+#include "App.h"
+
 
 int main() {
 
-	Engine* MagnetEngine = new Engine();
+    Magnet::AppBase app{};
 
-	delete MagnetEngine;
-
-	return 0;
+    try {
+        app.run();
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << '\n';
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
 }

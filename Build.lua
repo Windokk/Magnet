@@ -10,8 +10,7 @@ workspace "Magnet"
 
 OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
-group "Core"
-	include "Magnet-Core/Build-Core.lua"
-group ""
+
+include "Magnet-Core/Build-Core.lua"
 
 include "Magner-Editor/Build-Editor.lua"
