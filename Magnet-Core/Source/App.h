@@ -1,13 +1,13 @@
 #pragma once
 #include "Object.h"
 #include "Renderer.h"
-
+#include "Descriptors.h"
 
 namespace Magnet {
 
 	struct GlobalUBO {
-		glm::mat4 projectionView{ 1.f };
-		glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, -3.f, -1.f });
+		alignas(16) glm::mat4 projectionView{ 1.f };
+		alignas(16) glm::vec3 lightDirection = glm::normalize(glm::vec3{ 1.f, -3.f, -1.f });
 	};
 
 	class AppBase {
@@ -29,6 +29,9 @@ namespace Magnet {
 		Magnet::VKBase::Device device{ window };
 		Renderer renderer{window, device};
 
+		// NOTE : Order of declaration matters ! 
+
+		std::unique_ptr<VKBase::DescriptorPool> globalPool{};
 		std::vector<Magnet::EngineBase::Object> objects;
 	};
 }

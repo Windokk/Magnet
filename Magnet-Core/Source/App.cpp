@@ -5,26 +5,44 @@
 
 Magnet::AppBase::AppBase()
 {
+    globalPool = VKBase::DescriptorPool::Builder(device)
+        .setMaxSets(VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT)
+        .addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT)
+        .build();
+
     loadObjects();
 }
 
 Magnet::AppBase::~AppBase()
 {
+
 }
 
 void Magnet::AppBase::run() {
 
-    VKBase::Buffer globalUBOBuffer{
-        device,
-        sizeof(GlobalUBO),
-        VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT,
-        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-        device.properties.limits.minUniformBufferOffsetAlignment
-    };
-    globalUBOBuffer.map();
+    std::vector<std::unique_ptr<VKBase::Buffer>> uboBuffers(VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < uboBuffers.size(); i++) {
+        uboBuffers[i] = std::make_unique<VKBase::Buffer>(device,
+            sizeof(GlobalUBO),
+            1,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+        uboBuffers[i]->map();
+    }
 
-    RenderSystem renderSystem{ device, renderer.getSwapChainRenderpass() };
+    auto globalSetLayout = VKBase::DescriptorSetLayout::Builder(device)
+        .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+        .build();
+
+    std::vector<VkDescriptorSet> globalDescriptorSets(VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < globalDescriptorSets.size(); i++) {
+        auto bufferInfo = uboBuffers[i]->descriptorInfo();
+        VKBase::DescriptorWriter(*globalSetLayout, *globalPool)
+            .writeBuffer(0, &bufferInfo)
+            .build(globalDescriptorSets[i]);
+    }
+
+    RenderSystem renderSystem{ device, renderer.getSwapChainRenderpass(), globalSetLayout->getDescriptorSetLayout()};
     Magnet::EngineBase::Camera camera{};
 
 
@@ -55,14 +73,15 @@ void Magnet::AppBase::run() {
                 frameIndex,
                 frameTime,
                 commandBuffer,
-                camera
+                camera,
+                globalDescriptorSets[frameIndex]
             };
 
             //update 
             GlobalUBO ubo;
             ubo.projectionView = camera.getProjection() * camera.getView();
-            globalUBOBuffer.writeToIndex(&ubo, frameIndex);
-            globalUBOBuffer.flushIndex(frameIndex);
+            uboBuffers[frameIndex]->writeToBuffer(&ubo);
+            uboBuffers[frameIndex]->flush();
 
             //render
             renderer.beginSwapchainRenderpass(commandBuffer);

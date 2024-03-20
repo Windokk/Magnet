@@ -9,6 +9,7 @@ namespace Magnet {
 			float frameTime;
 			VkCommandBuffer commandBuffer;
 			EngineBase::Camera& camera;
+			VkDescriptorSet globalDescriptorSet;
 		};
 	}
 }
