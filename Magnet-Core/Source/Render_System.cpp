@@ -67,7 +67,7 @@ void Magnet::RenderSystem::create_pipeline(VkRenderPass renderPass)
     pipelineConfig.pipelineLayout = pipelineLayout;
     pipeline = std::make_unique<Magnet::VKBase::Pipeline>(
         device,
-        "Shaders/shader.vert.spv",
-        "Shaders/shader.frag.spv",
+        "assets/defaults/shaders/shader.vert.spv",
+        "assets/defaults/shaders/shader.frag.spv",
         pipelineConfig);
 }

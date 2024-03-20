@@ -51,7 +51,7 @@ void Magnet::AppBase::run() {
 
 void Magnet::AppBase::loadObjects()
 {
-    std::shared_ptr<Magnet::VKBase::Model> model = Magnet::VKBase::Model::createModelFromFile(device, "Models/Sphere_Smooth.obj");
+    std::shared_ptr<Magnet::VKBase::Model> model = Magnet::VKBase::Model::createModelFromFile(device, "assets/defaults/models/obj/Sphere_Smooth/Sphere_Smooth.obj");
 
     auto Obj = Magnet::EngineBase::Object::createObject();
     Obj.model = model;

@@ -27,6 +27,8 @@ project "Magnet-Editor"
 
    targetdir ("../Binaries/" .. OutputDir .. "/%{prj.name}")
    objdir ("../Binaries/Intermediates/" .. OutputDir .. "/%{prj.name}")
+   
+   prebuildcommands { "cd $(ProjectDir)assets\\defaults\\shaders\\ \n call compile_vs.bat" }
 
    filter "system:windows"
        systemversion "latest"
