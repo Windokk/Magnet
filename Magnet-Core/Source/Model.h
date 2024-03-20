@@ -1,6 +1,7 @@
 #pragma once
 #include "Commons.h"
-#include "Device.h"
+#include "Buffer.h"
+
 
 namespace Magnet {
 
@@ -45,13 +46,11 @@ namespace Magnet {
 			void createIndexBuffers(const std::vector<uint32_t>& indices);
 
 			Device& device;
-			VkBuffer vertexBuffer;
-			VkDeviceMemory vertexBufferMemory;
+			std::unique_ptr<Buffer> vertexBuffer;
 			uint32_t vertex_Count;
 
 			bool hasIndexBuffer = false;
-			VkBuffer indexBuffer;
-			VkDeviceMemory indexBufferMemory;
+			std::unique_ptr<Buffer> indexBuffer;
 			uint32_t index_Count;
 		};
 	}

@@ -14,6 +14,16 @@ Magnet::AppBase::~AppBase()
 
 void Magnet::AppBase::run() {
 
+    VKBase::Buffer globalUBOBuffer{
+        device,
+        sizeof(GlobalUBO),
+        VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT,
+        VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+        device.properties.limits.minUniformBufferOffsetAlignment
+    };
+    globalUBOBuffer.map();
+
     RenderSystem renderSystem{ device, renderer.getSwapChainRenderpass() };
     Magnet::EngineBase::Camera camera{};
 
@@ -39,8 +49,24 @@ void Magnet::AppBase::run() {
         camera.setPerspectiveProjection(glm::radians(45.f), aspect, 0.1f, 10.f);
 
         if (auto commandBuffer = renderer.beginFrame()) {
+            int frameIndex = renderer.getFrameIndex();
+
+            VKBase::FrameInfo frameInfo{
+                frameIndex,
+                frameTime,
+                commandBuffer,
+                camera
+            };
+
+            //update 
+            GlobalUBO ubo;
+            ubo.projectionView = camera.getProjection() * camera.getView();
+            globalUBOBuffer.writeToIndex(&ubo, frameIndex);
+            globalUBOBuffer.flushIndex(frameIndex);
+
+            //render
             renderer.beginSwapchainRenderpass(commandBuffer);
-            renderSystem.renderObjects(commandBuffer, objects, camera);
+            renderSystem.renderObjects(frameInfo, objects);
             renderer.endSwapchainRenderpass(commandBuffer);
             renderer.endFrame();
         }

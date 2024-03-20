@@ -27,47 +27,36 @@ Magnet::VKBase::Model::Model(Device& device, const Builder& builder) : device{de
 
 Magnet::VKBase::Model::~Model()
 {
-	vkDestroyBuffer(device.device(), vertexBuffer, nullptr);
-	vkFreeMemory(device.device(), vertexBufferMemory, nullptr);
-
-	if (hasIndexBuffer) {
-		vkDestroyBuffer(device.device(), indexBuffer, nullptr);
-		vkFreeMemory(device.device(), indexBufferMemory, nullptr);
-	}
+	
 }
 
 void Magnet::VKBase::Model::createVertexBuffers(const std::vector<Vertex>& vertices)
 { 
 	vertex_Count = static_cast<uint32_t>(vertices.size()); 
 	assert(vertex_Count >= 3 && "Vertex count must be at least 3");
-
 	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertex_Count;
+	uint32_t vertexSize = sizeof(vertices[0]);
 
-	VkBuffer staggingBuffer;
-	VkDeviceMemory staggingBufferMemory;
-
-	device.createBuffer(
-		bufferSize, 
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+	Buffer stagingBuffer{
+		device,
+		vertexSize,
+		vertex_Count,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		staggingBuffer,
-		staggingBufferMemory);
-	void* data;
-	vkMapMemory(device.device(), staggingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-	vkUnmapMemory(device.device(), staggingBufferMemory);
+	};
 
-	device.createBuffer(
-		bufferSize,
+	stagingBuffer.map();
+	stagingBuffer.writeToBuffer((void*)vertices.data());
+	
+	vertexBuffer = std::make_unique<Buffer>(
+		device,
+		vertexSize,
+		vertex_Count,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		vertexBuffer,
-		vertexBufferMemory);
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	device.copyBuffer(staggingBuffer, vertexBuffer, bufferSize);
 
-	vkDestroyBuffer(device.device(), staggingBuffer, nullptr);
-	vkFreeMemory(device.device(), staggingBufferMemory, nullptr);
+	device.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
 
 }
 
@@ -75,37 +64,33 @@ void Magnet::VKBase::Model::createIndexBuffers(const std::vector<uint32_t>& indi
 {
 	index_Count = static_cast<uint32_t>(indices.size());
 	hasIndexBuffer = index_Count > 0;
+
 	if (!hasIndexBuffer) {
 		return;
 	}
+
 	VkDeviceSize bufferSize = sizeof(indices[0]) * index_Count;
-	
+	uint32_t indexSize = sizeof(indices[0]);
 
-	VkBuffer staggingBuffer;
-	VkDeviceMemory staggingBufferMemory;
-
-	device.createBuffer(
-		bufferSize,
+	Buffer stagingBuffer{
+		device,
+		indexSize,
+		index_Count,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		staggingBuffer,
-		staggingBufferMemory);
-	void* data;
-	vkMapMemory(device.device(), staggingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
-	vkUnmapMemory(device.device(), staggingBufferMemory);
+	};
 
-	device.createBuffer(
-		bufferSize,
+	stagingBuffer.map();
+	stagingBuffer.writeToBuffer((void*)indices.data());
+
+	indexBuffer = std::make_unique<Buffer>(
+		device,
+		indexSize,
+		index_Count,
 		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		indexBuffer,
-		indexBufferMemory);
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	device.copyBuffer(staggingBuffer, indexBuffer, bufferSize);
-
-	vkDestroyBuffer(device.device(), staggingBuffer, nullptr);
-	vkFreeMemory(device.device(), staggingBufferMemory, nullptr);
+	device.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
 }
 
 void Magnet::VKBase::Model::draw(VkCommandBuffer commandBuffer)
@@ -128,12 +113,12 @@ std::unique_ptr<Magnet::VKBase::Model> Magnet::VKBase::Model::createModelFromFil
 
 void Magnet::VKBase::Model::bind(VkCommandBuffer commandBuffer)
 {
-	VkBuffer buffers[] = { vertexBuffer };
+	VkBuffer buffers[] = { vertexBuffer->getBuffer()};
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
 	if (hasIndexBuffer) {
-		vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 	}
 }
 

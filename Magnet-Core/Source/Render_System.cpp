@@ -11,11 +11,11 @@ Magnet::RenderSystem::~RenderSystem()
 	vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 }
 
-void Magnet::RenderSystem::renderObjects(VkCommandBuffer commandBuffer, std::vector<Magnet::EngineBase::Object>& objects, const EngineBase::Camera& camera)
+void Magnet::RenderSystem::renderObjects(VKBase::FrameInfo& frameInfo, std::vector<Magnet::EngineBase::Object>& objects)
 {
-    pipeline->bind(commandBuffer);
+    pipeline->bind(frameInfo.commandBuffer);
 
-    auto projectionView = camera.getProjection() * camera.getView();
+    auto projectionView = frameInfo.camera.getProjection() * frameInfo.camera.getView();
 
     for (auto& obj : objects) {
         
@@ -26,14 +26,14 @@ void Magnet::RenderSystem::renderObjects(VkCommandBuffer commandBuffer, std::vec
 
 
         vkCmdPushConstants(
-            commandBuffer,
+            frameInfo.commandBuffer,
             pipelineLayout,
             VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
             0,
             sizeof(SimplePushConstantData),
             &push);
-        obj.model->bind(commandBuffer);
-        obj.model->draw(commandBuffer);
+        obj.model->bind(frameInfo.commandBuffer);
+        obj.model->draw(frameInfo.commandBuffer);
     }
 }
 

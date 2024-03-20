@@ -2,7 +2,7 @@
 #include "Commons.h"
 #include "Object.h"
 #include "Renderer.h"
-#include "Camera.h"
+#include "FrameInfo.h"
 
 namespace Magnet {
 
@@ -21,7 +21,7 @@ namespace Magnet {
 		RenderSystem& operator=(const RenderSystem&) = delete;
 
 
-		void renderObjects(VkCommandBuffer commandBuffer, std::vector<Magnet::EngineBase::Object> &objects, const EngineBase::Camera& camera);
+		void renderObjects(VKBase::FrameInfo &frameInfo, std::vector<Magnet::EngineBase::Object> &objects);
 
 	private:
 		void create_pipelineLayout();
