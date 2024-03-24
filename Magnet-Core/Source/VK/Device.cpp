@@ -1,5 +1,6 @@
 #include "Device.h"
 
+
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,VkDebugUtilsMessageTypeFlagsEXT messageType,const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,void* pUserData) {
     std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
@@ -29,6 +30,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance,VkDebugUtilsMessengerEXT 
 }
 
 Magnet::VKBase::Device::Device(Magnet::Window& window) : window{ window } {
+    
     createInstance();
     setupDebugMessenger();
     createSurface();
@@ -207,30 +209,105 @@ void Magnet::VKBase::Device::createImageWithInfo(const VkImageCreateInfo& imageI
 
 void Magnet::VKBase::Device::createInstance()
 {
-    if (enableValidationLayers && !checkValidationLayerSupport()) {
-        throw std::runtime_error("validation layers requested, but not available!");
+    if (enableValidationLayers && !checkValidationLayersSupport()) {
+        throw std::runtime_error("Validation layers requested, but not available");
     }
 
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "LittleVulkanEngine App";
+    appInfo.pApplicationName ="Magnet";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_2;
 
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    auto extensions = getRequiredExtensions();
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+
+
+    /// -------------------------------- ///
+    ///       INSTANCE EXTENSIONS        ///
+    /// -------------------------------- ///
+    {
+        uint32_t instanceExtensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount, nullptr);
+        std::vector<VkExtensionProperties> extensions(instanceExtensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &instanceExtensionCount, extensions.data());
+
+        std::cout << "\nAvailable Instance Extensions :" << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::unordered_set<std::string> available;
+        for (const auto& extension : extensions) {
+            std::cout << "\t" << extension.extensionName << std::endl;
+            available.insert(extension.extensionName);
+        }
+
+        auto requiredinstanceExtensions = getInstanceRequiredExtensions();
+
+        std::cout << "\nRequired Instance Extensions :" << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        for (const auto& required : requiredinstanceExtensions) {
+            std::cout << "\t" << required << std::endl;
+            if (available.find(required) == available.end()) {
+                throw std::runtime_error("Missing Required Extension");
+            }
+            else {
+                usedInstanceExtensions.push_back(required);
+            }
+        }
+
+        std::cout << "\nUsed Instance Extensions :" << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        for (auto& used_Extension : usedInstanceExtensions) {
+            std::cout << "\t" << used_Extension << std::endl;
+        }
+        std::cout << "\n";
+    }
+
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(usedInstanceExtensions.size());
+    createInfo.ppEnabledExtensionNames = usedInstanceExtensions.data();
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
+
+        uint32_t instanceLayerCount = 0;
+        vkEnumerateInstanceLayerProperties(&instanceLayerCount, nullptr);
+        std::vector<VkLayerProperties> layers(instanceLayerCount);
+        vkEnumerateInstanceLayerProperties(&instanceLayerCount, layers.data());
+
+        std::cout << "\nAvailable Validation Layers :" << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        std::unordered_set<std::string> available;
+        for (const auto& layer : layers) {
+            std::cout << "\t" << layer.layerName << std::endl;
+            available.insert(layer.layerName);
+        }
+
+        auto requiredValidationLayers = getRequiredValidationLayers();
+
+        std::cout << "\nRequired Validation Layers :" << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        for (const auto& required : requiredValidationLayers) {
+            std::cout << "\t" << required << std::endl;
+            if (available.find(required) == available.end()) {
+                throw std::runtime_error("Missing Required Validation Layer");
+            }
+            else {
+                usedValidationLayers.push_back(required);
+            }
+        }
+
+        std::cout << "\nUsed Validation Layers :" << std::endl;
+        std::cout << "------------------------------" << std::endl;
+        for (auto& used_Layer : usedValidationLayers) {
+            std::cout << "\t" << used_Layer << std::endl;
+        }
+        std::cout << "\n";
+
+        createInfo.enabledLayerCount = static_cast<uint32_t>(usedValidationLayers.size());
+        createInfo.ppEnabledLayerNames = usedValidationLayers.data();
 
         populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
@@ -244,7 +321,6 @@ void Magnet::VKBase::Device::createInstance()
         throw std::runtime_error("failed to create instance!");
     }
 
-    hasGflwRequiredInstanceExtensions();
 }
 
 void Magnet::VKBase::Device::setupDebugMessenger()
@@ -262,16 +338,73 @@ void Magnet::VKBase::Device::createSurface()
     window.createWindowSurface(instance, &surface_);
 }
 
+std::string getVendorName(uint32_t vendorID)
+{
+    switch (vendorID)
+    {
+    case 0x1002:
+        return ("AMD");
+    case 0x1010:
+        return ("ImgTec");
+    case 0x10DE:
+        return ("NVIDIA");
+    case 0x13B5:
+        return ("ARM");
+    case 0x5143:
+        return ("Qualcomm");
+    case 0x8086:
+        return ("INTEL");
+    }
+    return ("Unknown Vendor");
+}
+
+std::string getDeviceType(uint32_t deviceType)
+{
+    switch (deviceType)
+    {
+    case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+        return ("Other");
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+        return ("Integrated GPU");
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+        return ("Discrete GPU");
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+        return ("Virtual GPU");
+    case VK_PHYSICAL_DEVICE_TYPE_CPU:
+        return ("CPU");
+    }
+    return ("Unknown");
+}
+
+std::string getVersionString(uint32_t version)
+{
+    char str[64];
+    sprintf(str, "%d.%d.%d", VK_VERSION_MAJOR(version), VK_VERSION_MINOR(version), VK_VERSION_PATCH(version));
+    return std::string(str);
+}
+
 void Magnet::VKBase::Device::pickPhysicalDevice()
 {
+    std::cout << "\n------------------------------\nDevices : \n\n";
+
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if (deviceCount == 0) {
-        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+        throw std::runtime_error("Failed to find GPUs with Vulkan support!");
     }
-    std::cout << "Device count: " << deviceCount << std::endl;
+    std::cout << "Devices count : " << deviceCount << std::endl;
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+    for (int i = 0; i < devices.size(); i++) {
+        vkGetPhysicalDeviceProperties(devices[i], &properties);
+        std::cout << "Device " << i<<" : "<<std::endl;
+        std::cout << "\t- Device Name : " << properties.deviceName << std::endl;
+        std::cout << "\t- Vendor : " << getVendorName(properties.vendorID)<<std::endl;
+        std::cout << "\t- Driver Version : "<< getVersionString(properties.driverVersion) <<std::endl;
+        std::cout << "\t- API Version : "<< getVersionString(properties.driverVersion) << std::endl;
+        std::cout << "\t- Device Type : "<< getDeviceType(properties.deviceType) << std::endl;
+    }
 
     for (const auto& device : devices) {
         if (isDeviceSuitable(device)) {
@@ -281,16 +414,18 @@ void Magnet::VKBase::Device::pickPhysicalDevice()
     }
 
     if (physicalDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("failed to find a suitable GPU!");
+        throw std::runtime_error("Failed to find a suitable GPU!");
     }
-
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-    std::cout << "physical device: " << properties.deviceName << std::endl;
+    std::cout << "Chosen device : \n" << std::endl;
+    std::cout << "\t" << properties.deviceName<<"\n\n";
 }
 
 void Magnet::VKBase::Device::createLogicalDevice()
 {
     QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+    
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
@@ -315,14 +450,14 @@ void Magnet::VKBase::Device::createLogicalDevice()
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
     createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(usedDeviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = usedDeviceExtensions.data();
 
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
     if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-        createInfo.ppEnabledLayerNames = validationLayers.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(usedValidationLayers.size());
+        createInfo.ppEnabledLayerNames = usedValidationLayers.data();
     }
     else {
         createInfo.enabledLayerCount = 0;
@@ -369,7 +504,7 @@ bool Magnet::VKBase::Device::isDeviceSuitable(VkPhysicalDevice device)
     return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
-std::vector<const char*> Magnet::VKBase::Device::getRequiredExtensions()
+std::vector<const char*> Magnet::VKBase::Device::getInstanceRequiredExtensions()
 {
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
@@ -384,7 +519,22 @@ std::vector<const char*> Magnet::VKBase::Device::getRequiredExtensions()
     return extensions;
 }
 
-bool Magnet::VKBase::Device::checkValidationLayerSupport()
+std::vector<const char*> Magnet::VKBase::Device::getRequiredValidationLayers()
+{
+    std::vector<const char*> requiredLayers;
+    requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
+
+    return requiredLayers;
+}
+
+std::vector<const char*> Magnet::VKBase::Device::getDeviceRequiredExtensions()
+{
+    std::vector<const char*> requireddeviceExtensions = {
+                VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    return requireddeviceExtensions;
+}
+
+bool Magnet::VKBase::Device::checkValidationLayersSupport()
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -392,7 +542,7 @@ bool Magnet::VKBase::Device::checkValidationLayerSupport()
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : validationLayers) {
+    for (const char* layerName : usedValidationLayers) {
         bool layerFound = false;
 
         for (const auto& layerProperties : availableLayers) {
@@ -456,49 +606,49 @@ void Magnet::VKBase::Device::populateDebugMessengerCreateInfo(VkDebugUtilsMessen
     createInfo.pUserData = nullptr;  // Optional
 }
 
-void Magnet::VKBase::Device::hasGflwRequiredInstanceExtensions()
-{
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    std::vector<VkExtensionProperties> extensions(extensionCount);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-    std::cout << "available extensions:" << std::endl;
-    std::unordered_set<std::string> available;
-    for (const auto& extension : extensions) {
-        std::cout << "\t" << extension.extensionName << std::endl;
-        available.insert(extension.extensionName);
-    }
-
-    std::cout << "required extensions:" << std::endl;
-    auto requiredExtensions = getRequiredExtensions();
-    for (const auto& required : requiredExtensions) {
-        std::cout << "\t" << required << std::endl;
-        if (available.find(required) == available.end()) {
-            throw std::runtime_error("Missing required glfw extension");
-        }
-    }
-}
-
 bool Magnet::VKBase::Device::checkDeviceExtensionSupport(VkPhysicalDevice device)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(
-        device,
-        nullptr,
-        &extensionCount,
-        availableExtensions.data());
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
-    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+    VkPhysicalDeviceProperties props;
+    vkGetPhysicalDeviceProperties(device, &props);
 
+    std::cout << "\nTesting Extensions Compatibility on device : " << props.deviceName<<std::endl;
+
+    std::cout << "\nAvailable Device Extensions :" << std::endl;
+    std::cout << "------------------------------" << std::endl;
+    std::unordered_set<std::string> available;
     for (const auto& extension : availableExtensions) {
-        requiredExtensions.erase(extension.extensionName);
+        std::cout << "\t" << extension.extensionName << std::endl;
+        available.insert(extension.extensionName);
     }
 
-    return requiredExtensions.empty();
+    auto requireddeviceExtensions = getDeviceRequiredExtensions();
+
+    std::cout << "\nRequired Device Extensions :" << std::endl;
+    std::cout << "------------------------------" << std::endl;
+    for (const auto& required : requireddeviceExtensions) {
+        std::cout << "\t" << required << std::endl;
+        if (available.find(required) == available.end()) {
+            return false;
+        }
+        else {
+            usedDeviceExtensions.push_back(required);
+        }
+    }
+    std::cout << "\nUsed Device Extensions :" << std::endl;
+    std::cout << "------------------------------" << std::endl;
+    for (auto& used_Extension : usedDeviceExtensions) {
+        std::cout << "\t" << used_Extension << std::endl;
+    }
+    std::cout << "\n";
+
+    return true;
+
+    
 }
 
 Magnet::VKBase::SwapChainSupportDetails Magnet::VKBase::Device::querySwapChainSupport(VkPhysicalDevice device)

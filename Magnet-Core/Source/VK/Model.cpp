@@ -6,7 +6,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include "Utils.h"
+#include "../Utils.h"
 
 namespace std{
 	template<>

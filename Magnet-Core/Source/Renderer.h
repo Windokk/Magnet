@@ -1,7 +1,7 @@
 #pragma once
 #include "Window.h"
-#include "Pipeline.h"
-#include "Swapchain.h"
+#include "VK/Pipeline.h"
+#include "VK/Swapchain.h"
 
 namespace Magnet {
 

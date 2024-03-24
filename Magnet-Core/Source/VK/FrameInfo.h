@@ -1,6 +1,6 @@
 #pragma once
-#include "Commons.h"
-#include "Camera.h"
+#include "../Commons.h"
+#include "../Engine/Camera.h"
 
 namespace Magnet {
 	namespace VKBase{
@@ -10,6 +10,7 @@ namespace Magnet {
 			VkCommandBuffer commandBuffer;
 			EngineBase::Camera& camera;
 			VkDescriptorSet globalDescriptorSet;
+			EngineBase::Object::Map& objects;
 		};
 	}
 }

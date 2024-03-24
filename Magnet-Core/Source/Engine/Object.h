@@ -1,6 +1,6 @@
 #pragma once
-#include "Commons.h"
-#include "Model.h"
+#include "../Commons.h"
+#include "../VK/Model.h"
 
 namespace Magnet {
 
@@ -21,6 +21,8 @@ namespace Magnet {
 		class Object {
 			public:
 				using id_t = unsigned int;
+
+				using Map = std::unordered_map<id_t, Object>;
 
 				static Object createObject() {
 					static id_t currentId = 0;

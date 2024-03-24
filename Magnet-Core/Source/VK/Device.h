@@ -1,10 +1,26 @@
 #pragma once
-#include "Commons.h"
-#include "Window.h"
+#include "../Commons.h"
+#include "../Window.h"
 
 namespace Magnet {
 
     namespace VKBase {
+
+        struct PhysicalDeviceInfo
+        {
+            VkPhysicalDeviceMemoryProperties     memoryProperties{};
+            std::vector<VkQueueFamilyProperties> queueProperties;
+
+            VkPhysicalDeviceFeatures         features10{};
+            VkPhysicalDeviceVulkan11Features features11{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
+            VkPhysicalDeviceVulkan12Features features12{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+            VkPhysicalDeviceVulkan13Features features13{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+
+            VkPhysicalDeviceProperties         properties10{};
+            VkPhysicalDeviceVulkan11Properties properties11{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES };
+            VkPhysicalDeviceVulkan12Properties properties12{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES };
+            VkPhysicalDeviceVulkan13Properties properties13{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES };
+        };
 
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR capabilities;
@@ -50,12 +66,7 @@ namespace Magnet {
                 const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
             // Buffer Helper Functions
-            void createBuffer(
-                VkDeviceSize size,
-                VkBufferUsageFlags usage,
-                VkMemoryPropertyFlags properties,
-                VkBuffer& buffer,
-                VkDeviceMemory& bufferMemory);
+            void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
             VkCommandBuffer beginSingleTimeCommands();
             void endSingleTimeCommands(VkCommandBuffer commandBuffer);
             void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
@@ -80,11 +91,12 @@ namespace Magnet {
 
             // helper functions
             bool isDeviceSuitable(VkPhysicalDevice device);
-            std::vector<const char*> getRequiredExtensions();
-            bool checkValidationLayerSupport();
+            std::vector<const char*> getInstanceRequiredExtensions();
+            std::vector<const char*> getRequiredValidationLayers();
+            std::vector<const char*> getDeviceRequiredExtensions();
+            bool checkValidationLayersSupport();
             QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
             void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-            void hasGflwRequiredInstanceExtensions();
             bool checkDeviceExtensionSupport(VkPhysicalDevice device);
             SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
@@ -99,8 +111,15 @@ namespace Magnet {
             VkQueue graphicsQueue_;
             VkQueue presentQueue_;
 
-            const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-            const std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+            VkPhysicalDeviceAccelerationStructureFeaturesKHR accelFeature{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+            VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeature{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
+                                                                             
+            PhysicalDeviceInfo physicalInfo;
+
+            std::vector<const char*> usedValidationLayers;
+            std::vector<const char*> usedInstanceExtensions;
+            std::vector<const char*> usedDeviceExtensions;
         };
 
     }

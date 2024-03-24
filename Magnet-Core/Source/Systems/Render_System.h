@@ -1,8 +1,8 @@
 #pragma once
-#include "Commons.h"
-#include "Object.h"
-#include "Renderer.h"
-#include "FrameInfo.h"
+#include "../Commons.h"
+#include "../Engine/Object.h"
+#include "../Renderer.h"
+#include "../VK/FrameInfo.h"
 
 namespace Magnet {
 
@@ -17,11 +17,10 @@ namespace Magnet {
 		RenderSystem(VKBase::Device &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
 		~RenderSystem();
 
-		RenderSystem(const RenderSystem&) = delete;
-		RenderSystem& operator=(const RenderSystem&) = delete;
+		
 
 
-		void renderObjects(VKBase::FrameInfo &frameInfo, std::vector<Magnet::EngineBase::Object> &objects);
+		void renderObjects(VKBase::FrameInfo &frameInfo);
 
 	private:
 		void create_pipelineLayout(VkDescriptorSetLayout globalSetLayout);

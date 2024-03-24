@@ -11,7 +11,7 @@ Magnet::RenderSystem::~RenderSystem()
 	vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
 }
 
-void Magnet::RenderSystem::renderObjects(VKBase::FrameInfo& frameInfo, std::vector<Magnet::EngineBase::Object>& objects)
+void Magnet::RenderSystem::renderObjects(VKBase::FrameInfo& frameInfo)
 {
     pipeline->bind(frameInfo.commandBuffer);
 
@@ -25,12 +25,12 @@ void Magnet::RenderSystem::renderObjects(VKBase::FrameInfo& frameInfo, std::vect
         0,
         nullptr);
 
-    for (auto& obj : objects) {
-        
+    for (auto& kv : frameInfo.objects) {
+        auto& obj = kv.second;
+        if (obj.model == nullptr) continue;
         SimplePushConstantData push{};
         push.modelMatrix = obj.transform.mat4();
         push.normalMatrix = obj.transform.normalMatrix();
-
 
         vkCmdPushConstants(
             frameInfo.commandBuffer,

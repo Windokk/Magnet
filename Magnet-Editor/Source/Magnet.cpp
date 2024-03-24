@@ -5,12 +5,15 @@ int main() {
 
     Magnet::AppBase app{};
 
-    try {
+    //Initialization
+    app.init();
+
+    //Main App Loop
+    while (not app.shouldClose()) {
         app.run();
     }
-    catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
-        return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
+
+    app.waitIdle();
+
+    return 0;
 }
