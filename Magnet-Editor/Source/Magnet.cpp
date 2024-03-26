@@ -1,9 +1,9 @@
-#include "App.h"
+#include "Engine.h"
 
 
 int main() {
 
-    Magnet::AppBase app{};
+    Magnet::Engine app{};
 
     //Initialization
     app.init();

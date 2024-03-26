@@ -267,6 +267,8 @@ void Magnet::VKBase::SwapChain::createDepthResources()
 
 void Magnet::VKBase::SwapChain::createRenderPass()
 {
+
+	//Depth
 	VkAttachmentDescription depthAttachment{};
 	depthAttachment.format = findDepthFormat();
 	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -281,6 +283,7 @@ void Magnet::VKBase::SwapChain::createRenderPass()
 	depthAttachmentRef.attachment = 1;
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
+	//Color
 	VkAttachmentDescription colorAttachment = {};
 	colorAttachment.format = getSwapChainImageFormat();
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;

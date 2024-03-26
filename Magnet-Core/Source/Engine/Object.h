@@ -1,6 +1,5 @@
 #pragma once
 #include "../Commons.h"
-#include "../VK/Model.h"
 
 namespace Magnet {
 
@@ -38,7 +37,6 @@ namespace Magnet {
 				id_t getId() { return id; };
 
 				const id_t id;
-				std::shared_ptr<Magnet::VKBase::Model> model{};
 				glm::vec3 color{};
 				TransformComponent transform{};
 
