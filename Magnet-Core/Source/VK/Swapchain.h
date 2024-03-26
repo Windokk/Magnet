@@ -39,13 +39,14 @@ namespace Magnet {
                 return swapchain.swapChainDepthFormat == swapChainDepthFormat && swapchain.swapChainImageFormat == swapChainImageFormat;
             }
 
+            void createFramebuffers();
+
         private:
             void Init();
             void createSwapChain();
             void createImageViews();
             void createDepthResources();
             void createRenderPass();
-            void createFramebuffers();
             void createSyncObjects();
 
             // Helper functions

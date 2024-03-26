@@ -12,6 +12,15 @@ Magnet::Renderer::~Renderer()
 	freeCommandBuffers();
 }
 
+void Magnet::Renderer::createPipelineCache()
+{
+    VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
+    pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    if (vkCreatePipelineCache(device.device(), &pipelineCacheCreateInfo, nullptr, &pipelineCache) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to");
+    }
+}
+
 void Magnet::Renderer::createCommandBuffers()
 {
     commandBuffers.resize(VKBase::SwapChain::MAX_FRAMES_IN_FLIGHT);

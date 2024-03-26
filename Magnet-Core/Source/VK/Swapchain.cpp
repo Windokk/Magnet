@@ -16,10 +16,9 @@ void Magnet::VKBase::SwapChain::Init()
 {
 	createSwapChain();
 	createImageViews();
-	createRenderPass();
-	createDepthResources();
-	createFramebuffers();
 	createSyncObjects();
+	createDepthResources();
+	createRenderPass();
 }
 
 Magnet::VKBase::SwapChain::~SwapChain()
